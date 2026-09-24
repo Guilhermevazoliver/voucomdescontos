@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Entrando no grupo Vou com Descontos - Beleza & Estilo…</title>
+<meta name="robots" content="noindex" />
+<style>
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#0d3b2e; color:#eafbe8; text-align:center; padding:24px; }
+  .box { max-width: 360px; }
+  .spinner { width:34px; height:34px; border-radius:50%; border:3px solid rgba(255,255,255,.25); border-top-color:#16a34a; margin:0 auto 18px; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  a { color:#bfe6c8; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="spinner"></div>
+    <p>Abrindo o WhatsApp — Vou com Descontos - Beleza & Estilo…</p>
+    <p><small>Se não abrir sozinho, <a id="fallback" href="https://chat.whatsapp.com/JCXvI8kClLZAX0tyi6i3ul?s=cl&p=i&mlu=4&ilr=4">toque aqui</a>.</small></p>
+  </div>
+  <script>
+    (function () {
+      var GROUP_SLUG = "beleza-estilo";
+      var INVITE_URL = "https://chat.whatsapp.com/JCXvI8kClLZAX0tyi6i3ul?s=cl&p=i&mlu=4&ilr=4";
+      var qs = new URLSearchParams(location.search);
+      document.getElementById("fallback").href = INVITE_URL;
+      var payload = JSON.stringify({
+        event_name: "group_join_click", group_slug: GROUP_SLUG, referrer: document.referrer,
+        utm_source: qs.get("utm_source") || null, utm_medium: qs.get("utm_medium") || null,
+        utm_campaign: qs.get("utm_campaign") || null, utm_content: qs.get("utm_content") || null,
+      });
+      // Espera o registro do clique terminar (com teto de 700ms) antes de
+      // redirecionar — testado ao vivo (24/09/2026): fetch com
+      // keepalive/sendBeacon não sobreviviam de forma confiável à
+      // navegação imediata nesse fluxo. Aguardar de verdade é o único
+      // jeito confirmado de garantir o registro sem atrasar demais quem
+      // está entrando no grupo.
+      var tracked = fetch("https://xnavhkburafdjtuxaslo.supabase.co/functions/v1/track-event", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: payload,
+      }).catch(function () {});
+      var timeout = new Promise(function (resolve) { setTimeout(resolve, 700); });
+      Promise.race([tracked, timeout]).then(function () { location.replace(INVITE_URL); });
+    })();
+  </script>
+</body>
+</html>
