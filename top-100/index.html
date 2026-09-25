@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Top 100 | Vou com Descontos</title>
+<meta name="description" content="Ranking em tempo real das 100 melhores ofertas ativas agora, por nota de qualidade + desconto." />
+<link rel="canonical" href="https://voucomdescontos.com.br/top-100/" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f8f5; --surface: #ffffff; --ink: #0f1a14; --ink-muted: #5b6b62;
+    --line: #e3e7de; --green-deep: #0d3b2e; --green-vivid: #16a34a; --gold: #c9a13b;
+    --radius-lg: 22px; --radius-md: 14px;
+    --shadow: 0 1px 2px rgba(15,26,20,.04), 0 8px 24px -12px rgba(15,26,20,.18);
+    --maxw: 860px;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.5; }
+  h1, h2, .display { font-family: "Manrope", "Inter", sans-serif; letter-spacing: -0.02em; margin: 0; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+  header.top { background: var(--green-deep); padding: 16px 0; }
+  header.top .wrap { max-width: 1120px; display: flex; align-items: center; gap: 16px; justify-content: space-between; }
+  .logo { color: #fff; font-weight: 800; font-size: 1.05rem; font-family: Manrope, sans-serif; }
+  header.top nav a { color: #cfe3d5; font-size: .85rem; font-weight: 600; margin-left: 16px; }
+
+  .hero { background: linear-gradient(160deg, #0b2a1f, var(--green-deep)); color: #fff; padding: 36px 0; }
+  .hero h1 { font-size: 1.7rem; }
+  .hero p { color: #cfe3d5; margin-top: 8px; max-width: 62ch; font-size: .92rem; }
+  .hero .note { margin-top: 10px; font-size: .78rem; color: var(--gold); font-weight: 600; }
+
+  main { padding: 28px 0 60px; }
+  .count { color: var(--ink-muted); font-size: .88rem; margin-bottom: 16px; display: block; }
+
+  .rank-list { display: flex; flex-direction: column; gap: 10px; }
+  .rank-item {
+    background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+  }
+  .rank-num {
+    font-family: Manrope, sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--ink-muted);
+    width: 34px; text-align: center; flex-shrink: 0; font-variant-numeric: tabular-nums;
+  }
+  .rank-item:nth-child(1) .rank-num { color: var(--gold); font-size: 1.4rem; }
+  .rank-item:nth-child(2) .rank-num, .rank-item:nth-child(3) .rank-num { color: var(--green-deep); font-size: 1.2rem; }
+  .rank-thumb { width: 56px; height: 56px; border-radius: 10px; background: #eef1ec; flex-shrink: 0; overflow: hidden; }
+  .rank-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+  .rank-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .rank-store { font-size: .66rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-muted); font-weight: 700; }
+  .rank-title { font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rank-score { font-size: .74rem; color: var(--green-vivid); font-weight: 700; }
+  .rank-price { text-align: right; flex-shrink: 0; }
+  .rank-price .price { font-family: Manrope, sans-serif; font-weight: 800; font-size: 1.05rem; display: block; }
+  .rank-price .original { font-size: .74rem; color: var(--ink-muted); text-decoration: line-through; }
+  .empty { text-align: center; padding: 60px 0; color: var(--ink-muted); }
+  .skeleton { color: var(--ink-muted); padding: 40px 0; text-align: center; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="/">Vou com Descontos</a>
+    <nav><a href="/buscar/">Buscar</a><a href="/queridinhos/">Queridinhos</a><a href="/categorias/">Categorias</a></nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <h1>🏆 Top 100 ofertas ativas</h1>
+    <p>Ranking pela nossa nota real de qualidade + desconto, entre todas as categorias com oferta ativa agora.</p>
+    <p class="note">⚠️ Recalculado a cada visita — não é um ranking fixo do dia, é o que está no topo agora mesmo.</p>
+  </div>
+</div>
+
+<main class="wrap">
+  <span class="count" id="results-count"></span>
+  <div id="results"><div class="skeleton">Carregando ranking...</div></div>
+</main>
+
+<script>
+  const API_BASE = "https://xnavhkburafdjtuxaslo.supabase.co/functions/v1";
+  function moneyBRL(n) { return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
+  function escapeHtml(s) { return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+  function rankItemHtml(r, i) {
+    const img = r.imageUrl ? `<img src="${r.imageUrl}" alt="${escapeHtml(r.title)}" loading="lazy" />` : "";
+    const original = r.originalPrice ? `<span class="original">${moneyBRL(r.originalPrice)}</span>` : "";
+    const score = r.oliverScore !== null ? `<span class="rank-score">nota ${r.oliverScore}${r.isBestSellerBadge ? " · ★ mais vendido" : ""}</span>` : "";
+    return `
+      <a class="rank-item" href="/oferta/?id=${r.canonicalProductId}">
+        <span class="rank-num">${i + 1}</span>
+        <div class="rank-thumb">${img}</div>
+        <div class="rank-body">
+          <span class="rank-store">${escapeHtml(r.store).replace("_br","").replace("_influenciador","")}</span>
+          <span class="rank-title">${escapeHtml(r.title)}</span>
+          ${score}
+        </div>
+        <div class="rank-price"><span class="price">${moneyBRL(r.price)}</span>${original}</div>
+      </a>`;
+  }
+
+  fetch(`${API_BASE}/search-products?special=top100&limit=100`)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById("results-count").textContent = `${data.count} oferta(s) no ranking agora`;
+      const el = document.getElementById("results");
+      el.innerHTML = data.results.length
+        ? `<div class="rank-list">${data.results.map(rankItemHtml).join("")}</div>`
+        : `<div class="empty">Sem ofertas suficientes pra montar o ranking agora.</div>`;
+    })
+    .catch(() => { document.getElementById("results").innerHTML = '<div class="empty">Não consegui carregar agora.</div>'; });
+</script>
+
+</body>
+</html>

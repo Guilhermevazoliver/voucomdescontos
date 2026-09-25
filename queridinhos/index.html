@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Queridinhos | Vou com Descontos</title>
+<meta name="description" content="Produtos com sinais reais de alta demanda — nota alta no nosso score ou selo oficial de mais vendido do próprio Mercado Livre." />
+<link rel="canonical" href="https://voucomdescontos.com.br/queridinhos/" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f8f5; --surface: #ffffff; --ink: #0f1a14; --ink-muted: #5b6b62;
+    --line: #e3e7de; --green-deep: #0d3b2e; --green-vivid: #16a34a; --gold: #c9a13b;
+    --radius-lg: 22px; --radius-md: 14px;
+    --shadow: 0 1px 2px rgba(15,26,20,.04), 0 8px 24px -12px rgba(15,26,20,.18);
+    --maxw: 1120px;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.5; }
+  h1, h2, .display { font-family: "Manrope", "Inter", sans-serif; letter-spacing: -0.02em; margin: 0; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+  header.top { background: var(--green-deep); padding: 16px 0; }
+  header.top .wrap { display: flex; align-items: center; gap: 16px; justify-content: space-between; }
+  .logo { color: #fff; font-weight: 800; font-size: 1.05rem; font-family: Manrope, sans-serif; }
+  header.top nav a { color: #cfe3d5; font-size: .85rem; font-weight: 600; margin-left: 16px; }
+
+  .hero { background: linear-gradient(160deg, #0b2a1f, var(--green-deep)); color: #fff; padding: 36px 0; }
+  .hero h1 { font-size: 1.7rem; }
+  .hero p { color: #cfe3d5; margin-top: 8px; max-width: 60ch; font-size: .92rem; }
+
+  main { padding: 28px 0 60px; }
+  .count { color: var(--ink-muted); font-size: .88rem; margin-bottom: 16px; display: block; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow);
+    overflow: hidden; display: flex; flex-direction: column; transition: transform .15s ease;
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card .thumb { aspect-ratio: 1; background: #eef1ec; position: relative; }
+  .card .thumb img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+  .card .discount-badge {
+    position: absolute; top: 8px; left: 8px; background: var(--green-vivid); color: #04150c;
+    font-size: .72rem; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+  }
+  .card .darling-badge {
+    position: absolute; top: 8px; right: 8px; background: var(--gold); color: #2b1d02;
+    font-size: .68rem; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+  }
+  .card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .card .store { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-muted); font-weight: 700; }
+  .card .title { font-size: .88rem; line-height: 1.35; flex: 1; }
+  .card .price-row { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
+  .card .price { font-family: Manrope, sans-serif; font-weight: 800; font-size: 1.15rem; }
+  .card .original { font-size: .78rem; color: var(--ink-muted); text-decoration: line-through; }
+  .card .cta {
+    margin-top: 8px; display: block; text-align: center; background: var(--green-deep); color: #fff;
+    font-weight: 700; font-size: .82rem; padding: 9px; border-radius: 999px; font-family: Manrope, sans-serif;
+  }
+  .empty { text-align: center; padding: 60px 0; color: var(--ink-muted); }
+  .skeleton { color: var(--ink-muted); padding: 40px 0; text-align: center; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="/">Vou com Descontos</a>
+    <nav><a href="/buscar/">Buscar</a><a href="/top-100/">Top 100</a><a href="/categorias/">Categorias</a></nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <h1>🔥 Os queridinhos do momento</h1>
+    <p>Produtos com sinal real de alta demanda: nota alta no nosso score de qualidade+desconto, ou o selo oficial "Mais Vendido" do próprio Mercado Livre. Nunca chamamos algo de queridinho só porque está com desconto.</p>
+  </div>
+</div>
+
+<main class="wrap">
+  <span class="count" id="results-count"></span>
+  <div id="results"><div class="skeleton">Carregando queridinhos...</div></div>
+</main>
+
+<script>
+  const API_BASE = "https://xnavhkburafdjtuxaslo.supabase.co/functions/v1";
+  function moneyBRL(n) { return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
+  function escapeHtml(s) { return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+  function cardHtml(r) {
+    const img = r.imageUrl ? `<img src="${r.imageUrl}" alt="${escapeHtml(r.title)}" loading="lazy" />` : "";
+    const discountBadge = r.discountPercent ? `<span class="discount-badge">${r.discountPercent}% OFF</span>` : "";
+    const darlingBadge = r.isBestSellerBadge ? `<span class="darling-badge">★ MAIS VENDIDO</span>` : "";
+    const original = r.originalPrice ? `<span class="original">${moneyBRL(r.originalPrice)}</span>` : "";
+    return `
+      <a class="card" href="/oferta/?id=${r.canonicalProductId}">
+        <div class="thumb">${img}${discountBadge}${darlingBadge}</div>
+        <div class="body">
+          <span class="store">${escapeHtml(r.store).replace("_br","").replace("_influenciador","")}</span>
+          <span class="title">${escapeHtml(r.title)}</span>
+          <div class="price-row"><span class="price">${moneyBRL(r.price)}</span>${original}</div>
+          <span class="cta">Ver oferta</span>
+        </div>
+      </a>`;
+  }
+
+  fetch(`${API_BASE}/search-products?special=queridinhos&limit=60`)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById("results-count").textContent = `${data.count} queridinho(s) ativo(s) agora`;
+      const el = document.getElementById("results");
+      el.innerHTML = data.results.length
+        ? `<div class="grid">${data.results.map(cardHtml).join("")}</div>`
+        : `<div class="empty">Nenhum queridinho com sinal forte o suficiente agora. Volta daqui a pouco.</div>`;
+    })
+    .catch(() => { document.getElementById("results").innerHTML = '<div class="empty">Não consegui carregar agora.</div>'; });
+</script>
+
+</body>
+</html>
