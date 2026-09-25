@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Minha Lista | Vou com Descontos</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f8f5; --surface: #ffffff; --ink: #0f1a14; --ink-muted: #5b6b62;
+    --line: #e3e7de; --green-deep: #0d3b2e; --green-vivid: #16a34a;
+    --radius-lg: 22px; --radius-md: 14px;
+    --shadow: 0 1px 2px rgba(15,26,20,.04), 0 8px 24px -12px rgba(15,26,20,.18);
+    --maxw: 720px;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); }
+  h1 { font-family: Manrope, sans-serif; margin: 0; }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+  header.top { background: var(--green-deep); padding: 16px 0; }
+  header.top a { color: #fff; font-weight: 800; font-family: Manrope, sans-serif; }
+  main { padding: 28px 0 60px; }
+  main h1 { font-size: 1.3rem; margin-bottom: 18px; }
+  .item {
+    display: flex; gap: 12px; background: var(--surface); border-radius: var(--radius-md);
+    box-shadow: var(--shadow); padding: 12px; margin-bottom: 10px; align-items: center;
+  }
+  .item img { width: 60px; height: 60px; object-fit: contain; background: #eef1ec; border-radius: 8px; }
+  .item .info { flex: 1; }
+  .item .title { font-size: .88rem; font-weight: 600; }
+  .item .meta { font-size: .78rem; color: var(--ink-muted); margin-top: 4px; }
+  .status { font-size: .76rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .status.watching { background: #fef9c3; color: #854d0e; }
+  .status.target_reached { background: #dcfce7; color: #166534; }
+  .remove { font-size: .76rem; color: var(--ink-muted); text-decoration: underline; cursor: pointer; border: none; background: none; margin-left: 8px; }
+  .empty { text-align: center; padding: 60px 0; color: var(--ink-muted); }
+  .empty a { color: var(--green-deep); font-weight: 700; text-decoration: underline; }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><a href="/">Vou com Descontos</a></div></header>
+<main class="wrap">
+  <h1>🔔 Minha Lista</h1>
+  <div id="list"><div class="empty">Carregando...</div></div>
+</main>
+<script>
+  const API_BASE = "https://xnavhkburafdjtuxaslo.supabase.co/functions/v1";
+  function anonId() { return localStorage.getItem("vcd_anon_id"); }
+  function moneyBRL(n) { return n == null ? "—" : n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
+  function escapeHtml(s) { return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+  async function load() {
+    const id = anonId();
+    const listEl = document.getElementById("list");
+    if (!id) {
+      listEl.innerHTML = `<div class="empty">Você ainda não pediu pra ser avisado de nenhum preço.<br><br><a href="/buscar/">Buscar ofertas</a></div>`;
+      return;
+    }
+    const res = await fetch(`${API_BASE}/watchlist?anonymousId=${id}`);
+    const data = await res.json();
+    if (!data.results.length) {
+      listEl.innerHTML = `<div class="empty">Sua lista está vazia.<br><br><a href="/buscar/">Buscar ofertas</a> e clicar em "Me avise quando ficar mais barato".</div>`;
+      return;
+    }
+    listEl.innerHTML = data.results.map(r => `
+      <div class="item">
+        ${r.imageUrl ? `<img src="${r.imageUrl}" alt="">` : ""}
+        <div class="info">
+          <div class="title"><a href="/oferta/?id=${r.canonicalProductId}">${escapeHtml(r.title)}</a></div>
+          <div class="meta">Alvo: ${moneyBRL(r.targetPrice)} · Preço atual: ${moneyBRL(r.currentBestPrice)}</div>
+        </div>
+        <span class="status ${r.status}">${r.status === "target_reached" ? "🎯 Alvo atingido" : "Aguardando"}</span>
+        <button class="remove" data-id="${r.id}">remover</button>
+      </div>
+    `).join("");
+
+    listEl.querySelectorAll(".remove").forEach(btn => btn.addEventListener("click", async () => {
+      await fetch(`${API_BASE}/watchlist?id=${btn.dataset.id}&anonymousId=${id}`, { method: "DELETE" });
+      load();
+    }));
+  }
+  load();
+</script>
+</body>
+</html>

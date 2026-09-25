@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Buscar ofertas | Vou com Descontos</title>
+<meta name="description" content="Busque produtos em promoção real, comparados entre lojas, curados pelo Vou com Descontos." />
+<link rel="canonical" href="https://voucomdescontos.com.br/buscar/" />
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f8f5; --surface: #ffffff; --ink: #0f1a14; --ink-muted: #5b6b62;
+    --line: #e3e7de; --green-deep: #0d3b2e; --green-vivid: #16a34a; --gold: #c9a13b;
+    --radius-lg: 22px; --radius-md: 14px;
+    --shadow: 0 1px 2px rgba(15,26,20,.04), 0 8px 24px -12px rgba(15,26,20,.18);
+    --maxw: 1120px;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.5; }
+  h1, h2, .display { font-family: "Manrope", "Inter", sans-serif; letter-spacing: -0.02em; margin: 0; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+
+  header.top { background: var(--green-deep); padding: 16px 0; }
+  header.top .wrap { display: flex; align-items: center; gap: 16px; }
+  .logo { color: #fff; font-weight: 800; font-size: 1.05rem; font-family: Manrope, sans-serif; white-space: nowrap; }
+  .search-box { flex: 1; display: flex; }
+  .search-box input {
+    flex: 1; border: none; border-radius: 999px 0 0 999px; padding: 12px 18px;
+    font-size: .95rem; font-family: inherit; outline: none;
+  }
+  .search-box button {
+    border: none; background: var(--green-vivid); color: #04150c; font-weight: 700;
+    padding: 0 20px; border-radius: 0 999px 999px 0; cursor: pointer; font-family: Manrope, sans-serif;
+  }
+
+  main { padding: 28px 0 60px; }
+  .results-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+  .results-head h1 { font-size: 1.3rem; }
+  .results-head .count { color: var(--ink-muted); font-size: .88rem; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow);
+    overflow: hidden; display: flex; flex-direction: column; transition: transform .15s ease;
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card .thumb { aspect-ratio: 1; background: #eef1ec; position: relative; }
+  .card .thumb img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+  .card .discount-badge {
+    position: absolute; top: 8px; left: 8px; background: var(--green-vivid); color: #04150c;
+    font-size: .72rem; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+  }
+  .card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .card .store { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-muted); font-weight: 700; }
+  .card .title { font-size: .88rem; line-height: 1.35; flex: 1; }
+  .card .price-row { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
+  .card .price { font-family: Manrope, sans-serif; font-weight: 800; font-size: 1.15rem; }
+  .card .original { font-size: .78rem; color: var(--ink-muted); text-decoration: line-through; }
+  .card .cta {
+    margin-top: 8px; display: block; text-align: center; background: var(--green-deep); color: #fff;
+    font-weight: 700; font-size: .82rem; padding: 9px; border-radius: 999px; font-family: Manrope, sans-serif;
+  }
+
+  .empty { text-align: center; padding: 60px 0; color: var(--ink-muted); }
+  .empty a { color: var(--green-deep); font-weight: 700; text-decoration: underline; }
+  .skeleton { color: var(--ink-muted); padding: 40px 0; text-align: center; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="/">Vou com Descontos</a>
+    <form class="search-box" id="search-form">
+      <input id="search-input" type="text" placeholder="O que você está procurando?" autocomplete="off" />
+      <button type="submit">Buscar</button>
+    </form>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="results-head">
+    <h1 id="results-title">Ofertas</h1>
+    <span class="count" id="results-count"></span>
+  </div>
+  <div id="results"><div class="skeleton">Buscando ofertas reais...</div></div>
+</main>
+
+<script>
+  const API_BASE = "https://xnavhkburafdjtuxaslo.supabase.co/functions/v1";
+
+  function moneyBRL(n) {
+    return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  function renderResults(data, q) {
+    const el = document.getElementById("results");
+    document.getElementById("results-title").textContent = q ? `Resultados para "${q}"` : "Últimas ofertas";
+    document.getElementById("results-count").textContent = data.count + (data.count === 1 ? " oferta encontrada" : " ofertas encontradas");
+
+    if (data.results.length === 0) {
+      el.innerHTML = `<div class="empty">Nenhuma oferta ativa encontrada${q ? ` pra "${q}"` : ""} agora.<br><br>
+        <a href="/">Ver os grupos de WhatsApp</a> — a Jul-IA continua procurando.</div>`;
+      return;
+    }
+
+    el.innerHTML = `<div class="grid">${data.results.map(cardHtml).join("")}</div>`;
+  }
+
+  function cardHtml(r) {
+    const img = r.imageUrl ? `<img src="${r.imageUrl}" alt="${escapeHtml(r.title)}" loading="lazy" />` : "";
+    const badge = r.discountPercent ? `<span class="discount-badge">${r.discountPercent}% OFF</span>` : "";
+    const original = r.originalPrice ? `<span class="original">${moneyBRL(r.originalPrice)}</span>` : "";
+    return `
+      <a class="card" href="/oferta/?id=${r.canonicalProductId}">
+        <div class="thumb">${img}${badge}</div>
+        <div class="body">
+          <span class="store">${escapeHtml(r.store).replace("_br", "").replace("_influenciador", "")}</span>
+          <span class="title">${escapeHtml(r.title)}</span>
+          <div class="price-row"><span class="price">${moneyBRL(r.price)}</span>${original}</div>
+          <span class="cta">Ver oferta</span>
+        </div>
+      </a>`;
+  }
+
+  function escapeHtml(s) {
+    return (s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  async function search(q) {
+    document.getElementById("results").innerHTML = '<div class="skeleton">Buscando ofertas reais...</div>';
+    try {
+      const url = new URL(API_BASE + "/search-products");
+      if (q) url.searchParams.set("q", q);
+      url.searchParams.set("limit", "40");
+      const res = await fetch(url);
+      const data = await res.json();
+      renderResults(data, q);
+    } catch (e) {
+      document.getElementById("results").innerHTML = '<div class="empty">Não consegui buscar agora. Tenta de novo em instantes.</div>';
+    }
+  }
+
+  const params = new URLSearchParams(location.search);
+  const initialQ = params.get("q") || "";
+  document.getElementById("search-input").value = initialQ;
+  search(initialQ);
+
+  document.getElementById("search-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const q = document.getElementById("search-input").value.trim();
+    history.pushState({}, "", q ? `?q=${encodeURIComponent(q)}` : location.pathname);
+    search(q);
+  });
+</script>
+
+</body>
+</html>
