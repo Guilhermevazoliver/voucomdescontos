@@ -300,6 +300,29 @@
   .modal .step-count { font-size: .8rem; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .06em; }
   .modal h3 { font-size: 1.3rem; margin: 8px 0 18px; }
   .modal .modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+
+  /* ---------- VITRINE (achados de hoje) ---------- */
+  .finding-card {
+    background: var(--surface); border-radius: var(--radius-md); box-shadow: 0 1px 2px rgba(15,26,20,.04), 0 8px 24px -12px rgba(15,26,20,.18);
+    overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: transform .15s ease;
+  }
+  .finding-card:hover { transform: translateY(-2px); }
+  .finding-card .thumb { aspect-ratio: 1; background: #eef1ec; position: relative; }
+  .finding-card .thumb img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+  .finding-card .discount-badge {
+    position: absolute; top: 8px; left: 8px; background: var(--green-vivid); color: #04150c;
+    font-size: .72rem; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+  }
+  .finding-card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .finding-card .store { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-muted); font-weight: 700; }
+  .finding-card .title { font-size: .86rem; line-height: 1.35; flex: 1; color: var(--ink); }
+  .finding-card .price-row { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
+  .finding-card .price { font-family: Manrope, sans-serif; font-weight: 800; font-size: 1.1rem; }
+  .finding-card .original { font-size: .76rem; color: var(--ink-muted); text-decoration: line-through; }
+  .finding-card .cta {
+    margin-top: 8px; display: block; text-align: center; background: var(--green-deep); color: #fff;
+    font-weight: 700; font-size: .8rem; padding: 8px; border-radius: 999px; font-family: Manrope, sans-serif;
+  }
 </style>
 </head>
 <body>
@@ -353,6 +376,22 @@
     <span>✅ Atualização constante</span>
   </div>
 </div>
+
+<section class="section" style="padding-bottom:0">
+  <div class="wrap">
+    <div class="section-head" style="text-align:left;max-width:none;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+      <div>
+        <span class="eyebrow">achados de agora</span>
+        <h2 style="margin-top:6px">NOSSOS ACHADOS DE HOJE</h2>
+      </div>
+      <a href="/buscar/" style="color:var(--green-deep);font-weight:700;font-size:.9rem;text-decoration:underline">Ver tudo →</a>
+    </div>
+    <span id="findings-count" style="color:var(--ink-muted);font-size:.85rem;display:block;margin-bottom:14px"></span>
+    <div id="findings-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
+      <div style="grid-column:1/-1;text-align:center;padding:30px 0;color:var(--ink-muted)">Carregando achados reais...</div>
+    </div>
+  </div>
+</section>
 
 <section class="section">
   <div class="wrap">
@@ -667,6 +706,48 @@ document.querySelectorAll(".interest-chip").forEach((chip) => {
 
 document.querySelectorAll(".faq-item").forEach((d) => d.addEventListener("toggle", () => { if (d.open) track("faq_open"); }));
 window.addEventListener("scroll", () => { if (window.scrollY > 400) track("view_groups"); }, { once: true });
+</script>
+<script>
+  // Vitrine "Nossos achados de hoje" — dado real da mesma search-products
+  // que alimenta /buscar/, sem filtro (= mais recentes), sempre dentro da
+  // janela de 24h (a Edge Function já só retorna oferta com
+  // opportunities.expires_at > now(); nada aqui força ou estica isso).
+  const FINDINGS_API = "https://xnavhkburafdjtuxaslo.supabase.co/functions/v1/search-products";
+  function findingsMoneyBRL(n) { return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
+  function findingsEscapeHtml(s) { return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function findingCardHtml(r) {
+    const img = r.imageUrl ? `<img src="${r.imageUrl}" alt="${findingsEscapeHtml(r.title)}" loading="lazy" />` : "";
+    const badge = r.discountPercent ? `<span class="discount-badge">${r.discountPercent}% OFF</span>` : "";
+    const original = r.originalPrice ? `<span class="original">${findingsMoneyBRL(r.originalPrice)}</span>` : "";
+    return `
+      <a class="finding-card" href="/oferta/?id=${r.canonicalProductId}">
+        <div class="thumb">${img}${badge}</div>
+        <div class="body">
+          <span class="store">${findingsEscapeHtml(r.store).replace("_br","").replace("_influenciador","")}</span>
+          <span class="title">${findingsEscapeHtml(r.title)}</span>
+          <div class="price-row"><span class="price">${findingsMoneyBRL(r.price)}</span>${original}</div>
+          <span class="cta">Ver oferta</span>
+        </div>
+      </a>`;
+  }
+  fetch(`${FINDINGS_API}?sort=recent&limit=12`)
+    .then(async (r) => {
+      const data = await r.json();
+      if (!r.ok || !Array.isArray(data.results)) throw new Error(data.error || "resposta inválida");
+      return data;
+    })
+    .then((data) => {
+      document.getElementById("findings-count").textContent = data.count
+        ? `${data.count} achado(s) ativo(s) agora — cada um some sozinho depois de 24h ou quando o preço muda`
+        : "";
+      const grid = document.getElementById("findings-grid");
+      grid.innerHTML = data.results.length
+        ? data.results.map(findingCardHtml).join("")
+        : `<div style="grid-column:1/-1;text-align:center;padding:30px 0;color:var(--ink-muted)">Nenhum achado ativo agora — os grupos de WhatsApp continuam recebendo em tempo real.</div>`;
+    })
+    .catch(() => {
+      document.getElementById("findings-grid").innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px 0;color:var(--ink-muted)">Não consegui carregar os achados agora.</div>`;
+    });
 </script>
 <script>
   if ("serviceWorker" in navigator) {
