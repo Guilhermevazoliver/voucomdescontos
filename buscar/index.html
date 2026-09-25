@@ -109,12 +109,33 @@
     document.getElementById("results-count").textContent = data.count + (data.count === 1 ? " oferta encontrada" : " ofertas encontradas");
 
     if (data.results.length === 0) {
+      const live = data.liveResults || [];
+      if (live.length > 0) {
+        el.innerHTML = `
+          <div class="empty" style="padding-bottom:20px">Nenhuma oferta no nosso catálogo curado${q ? ` pra "${q}"` : ""} ainda — mas achamos isso agora direto na Amazon.</div>
+          <div class="grid">${live.map(liveCardHtml).join("")}</div>`;
+        return;
+      }
       el.innerHTML = `<div class="empty">Nenhuma oferta ativa encontrada${q ? ` pra "${q}"` : ""} agora.<br><br>
         <a href="/">Ver os grupos de WhatsApp</a> — a Jul-IA continua procurando.</div>`;
       return;
     }
 
     el.innerHTML = `<div class="grid">${data.results.map(cardHtml).join("")}</div>`;
+  }
+
+  function liveCardHtml(r) {
+    const img = r.imageUrl ? `<img src="${r.imageUrl}" alt="${escapeHtml(r.title)}" loading="lazy" />` : "";
+    return `
+      <a class="card" href="${r.affiliateUrl}" target="_blank" rel="noopener">
+        <div class="thumb">${img}<span class="discount-badge" style="background:var(--gold,#c9a13b);color:#2b1d02">AO VIVO</span></div>
+        <div class="body">
+          <span class="store">Amazon</span>
+          <span class="title">${escapeHtml(r.title)}</span>
+          <div class="price-row"><span class="price">${r.price ? moneyBRL(r.price) : "Ver preço"}</span></div>
+          <span class="cta">Ver na Amazon</span>
+        </div>
+      </a>`;
   }
 
   function cardHtml(r) {
@@ -145,6 +166,7 @@
       url.searchParams.set("limit", "40");
       const res = await fetch(url);
       const data = await res.json();
+      if (!res.ok || !Array.isArray(data.results)) throw new Error(data.error || "resposta inválida");
       renderResults(data, q);
     } catch (e) {
       document.getElementById("results").innerHTML = '<div class="empty">Não consegui buscar agora. Tenta de novo em instantes.</div>';

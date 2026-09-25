@@ -89,7 +89,11 @@
   }
 
   fetch(`${API_BASE}/search-products?categories=true`)
-    .then(r => r.json())
+    .then(async (r) => {
+      const data = await r.json();
+      if (!r.ok || !Array.isArray(data.categories)) throw new Error(data.error || "resposta inválida");
+      return data;
+    })
     .then(data => {
       document.getElementById("results-count").textContent = `${data.categories.length} categoria(s) com oferta ativa`;
       const el = document.getElementById("results");

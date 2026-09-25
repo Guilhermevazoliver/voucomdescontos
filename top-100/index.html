@@ -110,7 +110,11 @@
   }
 
   fetch(`${API_BASE}/search-products?special=top100&limit=100`)
-    .then(r => r.json())
+    .then(async (r) => {
+      const data = await r.json();
+      if (!r.ok || !Array.isArray(data.results)) throw new Error(data.error || "resposta inválida");
+      return data;
+    })
     .then(data => {
       document.getElementById("results-count").textContent = `${data.count} oferta(s) no ranking agora`;
       const el = document.getElementById("results");

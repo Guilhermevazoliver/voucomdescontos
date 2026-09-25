@@ -66,8 +66,15 @@
       listEl.innerHTML = `<div class="empty">Você ainda não pediu pra ser avisado de nenhum preço.<br><br><a href="/buscar/">Buscar ofertas</a></div>`;
       return;
     }
-    const res = await fetch(`${API_BASE}/watchlist?anonymousId=${id}`);
-    const data = await res.json();
+    let data;
+    try {
+      const res = await fetch(`${API_BASE}/watchlist?anonymousId=${id}`);
+      data = await res.json();
+      if (!res.ok || !Array.isArray(data.results)) throw new Error(data.error || "resposta inválida");
+    } catch (e) {
+      listEl.innerHTML = `<div class="empty">Não consegui carregar sua lista agora. Tenta de novo em instantes.</div>`;
+      return;
+    }
     if (!data.results.length) {
       listEl.innerHTML = `<div class="empty">Sua lista está vazia.<br><br><a href="/buscar/">Buscar ofertas</a> e clicar em "Me avise quando ficar mais barato".</div>`;
       return;

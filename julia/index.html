@@ -140,6 +140,14 @@
   const sendBtn = document.getElementById("send-btn");
 
   function moneyBRL(n) { return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
+  function getAnonymousId() {
+    let id = localStorage.getItem("vcd_anon_id");
+    if (!id) {
+      id = "anon_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem("vcd_anon_id", id);
+    }
+    return id;
+  }
   function escapeHtml(s) { return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
   function cardHtml(r) {
@@ -167,13 +175,30 @@
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  function addJuliaMessage(text, results) {
+  function liveCardHtml(r) {
+    const img = r.imageUrl ? `<img src="${r.imageUrl}" alt="${escapeHtml(r.title)}" loading="lazy" />` : "";
+    return `
+      <a class="card" href="${r.affiliateUrl}" target="_blank" rel="noopener">
+        <div class="thumb">${img}<span class="discount-badge" style="background:var(--gold);color:#2b1d02">AO VIVO</span></div>
+        <div class="body">
+          <span class="store">Amazon</span>
+          <span class="title">${escapeHtml(r.title)}</span>
+          <div class="price-row"><span class="price">${r.price ? moneyBRL(r.price) : "Ver preço"}</span></div>
+          <span class="cta">Ver na Amazon</span>
+        </div>
+      </a>`;
+  }
+
+  function addJuliaMessage(text, results, liveResults) {
     const el = document.createElement("div");
     el.className = "msg julia";
     const grid = results && results.length
       ? `<div class="results-grid">${results.map(cardHtml).join("")}</div>`
       : "";
-    el.innerHTML = `<div class="avatar">🤖</div><div class="bubble" style="max-width:100%">${escapeHtml(text)}${grid}</div>`;
+    const liveGrid = liveResults && liveResults.length
+      ? `<div class="results-grid">${liveResults.map(liveCardHtml).join("")}</div>`
+      : "";
+    el.innerHTML = `<div class="avatar">🤖</div><div class="bubble" style="max-width:100%">${escapeHtml(text)}${grid}${liveGrid}</div>`;
     chatBox.appendChild(el);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
@@ -201,14 +226,14 @@
       const res = await fetch(`${API_BASE}/julia`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message, anonymousId: getAnonymousId() }),
       });
       const data = await res.json();
       removeTyping();
       if (data.error) {
         addJuliaMessage(data.error, []);
       } else {
-        addJuliaMessage(data.reply, data.results);
+        addJuliaMessage(data.reply, data.results, data.liveResults);
       }
     } catch (e) {
       removeTyping();
