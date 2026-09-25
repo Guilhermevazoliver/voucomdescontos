@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jul-IA | Vou com Descontos</title>
+<meta name="description" content="Diga o que você quer comprar em uma frase — a Jul-IA acha as ofertas reais no catálogo." />
+<link rel="canonical" href="https://voucomdescontos.com.br/julia/" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f8f5; --surface: #ffffff; --ink: #0f1a14; --ink-muted: #5b6b62;
+    --line: #e3e7de; --green-deep: #0d3b2e; --green-vivid: #16a34a; --gold: #c9a13b;
+    --radius-lg: 22px; --radius-md: 14px;
+    --shadow: 0 1px 2px rgba(15,26,20,.04), 0 8px 24px -12px rgba(15,26,20,.18);
+    --maxw: 760px;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.5; }
+  h1, h2, .display { font-family: "Manrope", "Inter", sans-serif; letter-spacing: -0.02em; margin: 0; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+  header.top { background: var(--green-deep); padding: 16px 0; }
+  header.top .wrap { max-width: 1120px; display: flex; align-items: center; gap: 16px; justify-content: space-between; }
+  .logo { color: #fff; font-weight: 800; font-size: 1.05rem; font-family: Manrope, sans-serif; }
+  header.top nav a { color: #cfe3d5; font-size: .85rem; font-weight: 600; margin-left: 16px; }
+
+  .hero { background: linear-gradient(160deg, #0b2a1f, var(--green-deep)); color: #fff; padding: 32px 0; }
+  .hero h1 { font-size: 1.6rem; }
+  .hero p { color: #cfe3d5; margin-top: 6px; font-size: .92rem; }
+
+  main { padding: 24px 0 60px; }
+
+  .chat-box {
+    background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow);
+    padding: 18px; display: flex; flex-direction: column; gap: 14px; min-height: 260px;
+  }
+  .msg { display: flex; gap: 10px; align-items: flex-start; }
+  .msg .avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center;
+    justify-content: center; font-size: .95rem;
+  }
+  .msg.julia .avatar { background: var(--green-deep); color: #fff; }
+  .msg.user .avatar { background: #eef1ec; }
+  .msg .bubble { background: #f2f4ef; border-radius: var(--radius-md); padding: 10px 14px; font-size: .9rem; max-width: 90%; }
+  .msg.user .bubble { background: var(--green-vivid); color: #04150c; }
+  .msg.julia .bubble { background: #f2f4ef; }
+
+  .quick-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .quick-suggestions button {
+    background: #eef4ee; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px;
+    font-size: .78rem; cursor: pointer; font-family: inherit; color: var(--ink);
+  }
+  .quick-suggestions button:hover { background: #e2ebe2; }
+
+  form.composer { display: flex; gap: 8px; margin-top: 18px; }
+  form.composer input {
+    flex: 1; border: 1px solid var(--line); border-radius: 999px; padding: 12px 18px;
+    font-size: .92rem; font-family: inherit; outline: none;
+  }
+  form.composer input:focus { border-color: var(--green-vivid); }
+  form.composer button {
+    border: none; background: var(--green-deep); color: #fff; font-weight: 700; padding: 0 22px;
+    border-radius: 999px; cursor: pointer; font-family: Manrope, sans-serif; font-size: .88rem;
+  }
+  form.composer button:disabled { opacity: .5; cursor: default; }
+
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 10px; }
+  .card {
+    background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow);
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .card .thumb { aspect-ratio: 1; background: #eef1ec; position: relative; }
+  .card .thumb img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+  .card .discount-badge {
+    position: absolute; top: 6px; left: 6px; background: var(--green-vivid); color: #04150c;
+    font-size: .66rem; font-weight: 800; padding: 2px 7px; border-radius: 999px;
+  }
+  .card .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 5px; flex: 1; }
+  .card .store { font-size: .62rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-muted); font-weight: 700; }
+  .card .title { font-size: .8rem; line-height: 1.3; flex: 1; }
+  .card .price-row { display: flex; align-items: baseline; gap: 6px; }
+  .card .price { font-family: Manrope, sans-serif; font-weight: 800; font-size: 1rem; }
+  .card .original { font-size: .7rem; color: var(--ink-muted); text-decoration: line-through; }
+  .card .cta {
+    margin-top: 4px; display: block; text-align: center; background: var(--green-deep); color: #fff;
+    font-weight: 700; font-size: .76rem; padding: 7px; border-radius: 999px; font-family: Manrope, sans-serif;
+  }
+  .typing { color: var(--ink-muted); font-size: .82rem; font-style: italic; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="/">Vou com Descontos</a>
+    <nav><a href="/buscar/">Buscar</a><a href="/queridinhos/">Queridinhos</a><a href="/top-100/">Top 100</a></nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <h1>🤖 Jul-IA</h1>
+    <p>Diz numa frase o que você procura — ela entende preço, categoria e o que você quer, e busca só nas ofertas reais e ativas do catálogo.</p>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="chat-box" id="chat-box">
+    <div class="msg julia">
+      <div class="avatar">🤖</div>
+      <div class="bubble">Oi! Me conta o que você está procurando — pode ser algo como "quero um fone bluetooth até R$150" ou "perfume feminino até 120 reais".</div>
+    </div>
+    <div class="quick-suggestions">
+      <button type="button" data-q="quero um whey protein até 150 reais">whey até R$150</button>
+      <button type="button" data-q="tênis de corrida até 250 reais">tênis até R$250</button>
+      <button type="button" data-q="perfume masculino até 100 reais">perfume até R$100</button>
+    </div>
+  </div>
+
+  <form class="composer" id="composer">
+    <input type="text" id="input" placeholder="O que você está procurando?" autocomplete="off" />
+    <button type="submit" id="send-btn">Enviar</button>
+  </form>
+</main>
+
+<script>
+  const API_BASE = "https://xnavhkburafdjtuxaslo.supabase.co/functions/v1";
+  const chatBox = document.getElementById("chat-box");
+  const form = document.getElementById("composer");
+  const input = document.getElementById("input");
+  const sendBtn = document.getElementById("send-btn");
+
+  function moneyBRL(n) { return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
+  function escapeHtml(s) { return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+  function cardHtml(r) {
+    const img = r.imageUrl ? `<img src="${r.imageUrl}" alt="${escapeHtml(r.title)}" loading="lazy" />` : "";
+    const discountBadge = r.discountPercent ? `<span class="discount-badge">${r.discountPercent}% OFF</span>` : "";
+    const original = r.originalPrice ? `<span class="original">${moneyBRL(r.originalPrice)}</span>` : "";
+    return `
+      <a class="card" href="/oferta/?id=${r.canonicalProductId}">
+        <div class="thumb">${img}${discountBadge}</div>
+        <div class="body">
+          <span class="store">${escapeHtml(r.store).replace("_br","").replace("_influenciador","")}</span>
+          <span class="title">${escapeHtml(r.title)}</span>
+          <div class="price-row"><span class="price">${moneyBRL(r.price)}</span>${original}</div>
+          <span class="cta">Ver oferta</span>
+        </div>
+      </a>`;
+  }
+
+  function addUserMessage(text) {
+    const el = document.createElement("div");
+    el.className = "msg user";
+    el.innerHTML = `<div class="bubble">${escapeHtml(text)}</div><div class="avatar">🙂</div>`;
+    el.style.flexDirection = "row-reverse";
+    chatBox.appendChild(el);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function addJuliaMessage(text, results) {
+    const el = document.createElement("div");
+    el.className = "msg julia";
+    const grid = results && results.length
+      ? `<div class="results-grid">${results.map(cardHtml).join("")}</div>`
+      : "";
+    el.innerHTML = `<div class="avatar">🤖</div><div class="bubble" style="max-width:100%">${escapeHtml(text)}${grid}</div>`;
+    chatBox.appendChild(el);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function addTyping() {
+    const el = document.createElement("div");
+    el.className = "msg julia";
+    el.id = "typing-indicator";
+    el.innerHTML = `<div class="avatar">🤖</div><div class="typing">digitando...</div>`;
+    chatBox.appendChild(el);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function removeTyping() {
+    const el = document.getElementById("typing-indicator");
+    if (el) el.remove();
+  }
+
+  async function ask(message) {
+    addUserMessage(message);
+    input.value = "";
+    sendBtn.disabled = true;
+    addTyping();
+    try {
+      const res = await fetch(`${API_BASE}/julia`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      const data = await res.json();
+      removeTyping();
+      if (data.error) {
+        addJuliaMessage(data.error, []);
+      } else {
+        addJuliaMessage(data.reply, data.results);
+      }
+    } catch (e) {
+      removeTyping();
+      addJuliaMessage("Não consegui responder agora. Tenta de novo em instantes.", []);
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const message = input.value.trim();
+    if (message) ask(message);
+  });
+
+  document.querySelectorAll(".quick-suggestions button").forEach((btn) => {
+    btn.addEventListener("click", () => ask(btn.dataset.q));
+  });
+</script>
+
+</body>
+</html>
