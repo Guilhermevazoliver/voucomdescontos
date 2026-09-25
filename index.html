@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Vou com Descontos | Promoções e Ofertas no WhatsApp</title>
 <meta name="description" content="Entre nos grupos Vou com Descontos e receba ofertas selecionadas de beleza, suplementos, viagens, casa, tecnologia e muito mais." />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#0d3b2e" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="canonical" href="https://voucomdescontos.com.br/" />
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Vou com Descontos" />
@@ -664,6 +667,11 @@ document.querySelectorAll(".interest-chip").forEach((chip) => {
 
 document.querySelectorAll(".faq-item").forEach((d) => d.addEventListener("toggle", () => { if (d.open) track("faq_open"); }));
 window.addEventListener("scroll", () => { if (window.scrollY > 400) track("view_groups"); }, { once: true });
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+  }
 </script>
 </body>
 </html>

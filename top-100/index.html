@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Top 100 | Vou com Descontos</title>
 <meta name="description" content="Ranking em tempo real das 100 melhores ofertas ativas agora, por nota de qualidade + desconto." />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#0d3b2e" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="canonical" href="https://voucomdescontos.com.br/top-100/" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -118,5 +121,10 @@
     .catch(() => { document.getElementById("results").innerHTML = '<div class="empty">Não consegui carregar agora.</div>'; });
 </script>
 
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+  }
+</script>
 </body>
 </html>
